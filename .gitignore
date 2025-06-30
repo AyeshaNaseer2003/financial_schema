@@ -1,0 +1,4 @@
+venv/
+.env
+schema_dummy.json
+__pycache__/
