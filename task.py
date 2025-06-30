@@ -1,36 +1,42 @@
-import fitz  # PyMuPDF
-import google.generativeai as genai
+from spire.pdf.common import *
+from spire.pdf import *
 from dotenv import load_dotenv
 import os
 import json
-from models import FinancialReport 
+from models import FinancialReport  # Your Pydantic schema
+from google import generativeai as genai
 
 
-# Load API key from .env
+# === Configuration ===
 load_dotenv()
 API_KEY = os.getenv("GEMINI_API_KEY")
 genai.configure(api_key=API_KEY)
 
-# 1. Extract text from PDF
-def extract_text_from_pdf(pdf_path):
-    doc = fitz.open(pdf_path)
-    text = ""
-    for page in doc:
-        text += page.get_text()
-    doc.close()
-    return text
 
-# 2. Save raw text to file
+# === 1. Extract text from PDF ===
+def extract_text_from_pdf(file_path):
+    doc = PdfDocument()
+    doc.LoadFromFile(file_path)
+    full_text = ""
+    for i in range(doc.Pages.Count):
+        page = doc.Pages.get_Item(i)
+        extractor = PdfTextExtractor(page)
+        options = PdfTextExtractOptions()
+        full_text += extractor.ExtractText(options) + "\n\n"
+    doc.Close()
+    return full_text
+
+# === 2. Save raw extracted text to a file (optional for debugging) ===
 def save_text_to_file(text, filename):
     with open(filename, "w", encoding="utf-8") as f:
         f.write(text)
 
-# 3. Load raw text from file
+# === 3. Load text from a file (optional for re-use) ===
 def load_text_from_file(filename):
     with open(filename, "r", encoding="utf-8") as f:
         return f.read()
 
-# 4. Send text to Gemini 2.0 Flash
+# === 4. Gemini structured output with schema binding ===
 def query_gemini_structured_json(text_block):
     # Combine your system prompt and the text_block into a single user message
     PROMPT = """
@@ -69,7 +75,7 @@ Here is the financial report text:
     return raw_json
 
 
-# === Run Workflow ===
+# === Run the full workflow ===
 pdf_file = "ASTRA_ZENECA 2022-2024.pdf"
 text_file = "parsed_text.txt"
 json_file = "structured_output.json"
@@ -96,4 +102,3 @@ try:
     print("JSON is valid and matches the schema.")
 except Exception as e:
     print("JSON validation failed:", e)
-
