@@ -2,4 +2,4 @@ venv/
 .env
 schema_dummy.json
 __pycache__/
-dummy_schema.py
+dummy_schema.json
