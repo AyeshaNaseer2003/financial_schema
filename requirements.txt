@@ -1,3 +1,7 @@
 google-generativeai
 python-dotenv
-pymupdf
+spire.pdf
+langchain 
+langchain-google-genai 
+langchain-core
+langfuse
